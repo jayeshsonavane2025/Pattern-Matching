@@ -25,7 +25,7 @@ This website is built using the following technologies:
 ## Usage
 
 1. Clone the repository: `git clone https://github.com/your-username/pattern-matching-hub.git`
-2. Navigate to the project folder: `cd pattern-matching-hub`
+2. Navigate to the project folder: `cd Pattern-Matching`
 3. Open `index.html` in your web browser to explore the website.
 
 ## Contributing
