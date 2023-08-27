@@ -1,0 +1,396 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+
+<head>
+	<meta name="Author" content="Jayesh">
+	<meta name="Keywords" content="Animation, Pattern Matching, Algorithms">
+	<meta name="Description" content="">
+	<title>Z Algorithm Exact Pattern Match (JavaScript Demo)</title>
+	<!--link rel="stylesheet" type="text/css" href="/styles.css"-->
+
+	<style>
+		body {
+			margin: 0;
+		}
+
+		body,
+		td {
+			font-family: verdana;
+			font-size: 13px;
+		}
+
+		table.fullsize {
+			margin: 0;
+			padding: 0;
+			width: 100%;
+			height: 100%;
+		}
+
+		h1 {
+			margin-top: 0px;
+			font-family: verdana;
+			font-size: 16px;
+			font-style: italic;
+		}
+
+		h2 {
+			margin-top: 0px;
+			font-family: verdana;
+			font-size: 14px;
+			font-weight: bold;
+		}
+
+		div.divMenuItem a:hover,
+		div#menuBar a:hover {
+			color: moccasin;
+		}
+
+		div.divMenuItem {
+			position: absolute;
+			display: none;
+			padding: 5px 8px 5px 8px;
+			background-color: #6699CC;
+		}
+
+		#menuTd,
+		#menuTd a {
+			text-decoration: none;
+			color: white;
+			font-size: 10px;
+			font-weight: bold;
+		}
+
+		div.fh-tabs {
+			display: none;
+		}
+
+		TD.content {
+			border-width: 0px;
+			font-family: verdana;
+			font-size: 12px;
+		}
+
+		TH.content {
+			border-width: 0px;
+			font-family: verdana;
+			font-size: 90%;
+		}
+
+		TR.header2 {
+			height: 30px;
+			background-color: lightskyblue;
+		}
+
+		TR.header3 {
+			background-color: #D9E9F9;
+		}
+
+		TR.closing {
+			height: 20px;
+			background-color: #E5E5E5;
+			border-width: 0px;
+		}
+
+		TR.list {
+			background-color: #EEEEEE;
+			border-width: 0px;
+		}
+
+		TT.link {
+			color: blue;
+			text-decoration: underline;
+			clear: none;
+		}
+
+		TT.blue {
+			color: blue;
+			font-weight: bold;
+			font-size: 12px;
+			font-family: verdana;
+		}
+
+		TT.gold {
+			color: gold;
+			font-weight: bold;
+			font-size: 12px;
+			font-family: verdana;
+		}
+
+		TT.hand {
+			text-decoration: none;
+			font-size: 12px;
+			font-family: verdana;
+		}
+	</style>
+</head>
+
+<body style="background-color:rgb(214, 240, 243);">
+
+	<table class="fullsize" cellpadding="5" cellspacing="0" border="0">
+
+		<tr height="*">
+			<td colspan="3" valign="top" height="100%" style="padding:10px">
+				<!-- this is the main section -->
+
+				<script>
+					function ce(elName, parent, elId) {
+						var el = document.createElement(elName);
+						if (elId) el.id = elId;
+						if (parent) parent.appendChild(el);
+						return el;
+					}
+
+					function ctn(text, parent) {
+						var tn = document.createTextNode(text);
+						if (parent) parent.appendChild(tn);
+						return tn;
+					}
+
+					function ge(id) {
+						return document.getElementById(id);
+					}
+
+					function removeAllChildren(el) {
+						while (el.firstChild)
+							el.removeChild(el.firstChild);
+					}
+
+					function buildTable(t, el) {
+						var tbody = ce('tbody', table = ce('table', el));
+						table.border = 1;
+						table.style.border = 0;
+						table.cellSpacing = 1;
+
+						var i, tr, j, td, o;
+						for (i = 0; i < t.length; i++) {
+							tr = ce('tr', tbody);
+							for (j = 0; j < t[i].length; j++) {
+								td = ce('td', tr);
+								o = t[i][j];
+
+								if (o.text != undefined) {
+									if (o.color) td.style.color = o.color;
+									if (o.colSpan) td.colSpan = o.colSpan;
+									if (o.align) td.align = o.align;
+									if (o.width) td.style.width = o.width;
+									if (o.bgColor) td.style.backgroundColor = o.bgColor;
+									td.innerHTML = o.text;
+								} else {
+									ctn(o, td);
+								}
+							}
+						}
+					}
+
+					var onkeypressListeners = new Array();
+					document.onkeypress = function (e) { for (var i = 0; i < onkeypressListeners.length; i++) onkeypressListeners[i](e); }
+
+					function pw(s, w) { var ret = '' + s; while (ret.length < w) ret = ' ' + ret; return ret; }
+					function div3(x) { return Math.floor(x / 3); }
+					function leq1(a1, a2, b1, b2) { return a1 < b1 || (a1 == b1 && a2 <= b2); }
+					function leq2(a1, a2, a3, b1, b2, b3) { return a1 < b1 || (a1 == b1 && leq1(a2, a3, b2, b3)); }
+
+					function bld_table(text, n, colors, table) {
+						var i;
+						for (i = 0; i < n; i++) {
+							if (i < text.length)
+								table.push({ align: 'center', width: 25, text: text.charAt(i), bgColor: colors[i] });
+							else
+								table.push({ align: 'center', width: 25, text: '', bgColor: '' });
+
+						}
+					}
+
+					function compute_z(text, z) {
+						var cmp = 0;
+						var nt = text.length
+						var l = r = si = k = kOld = zOld = b = zk = 0;
+
+						for (k = 1; k < nt; k++) {
+							if (k > r) {
+								zk = 0;
+								for (si = 0; si < nt; si++) {
+									cmp++;
+									if ((si + k < nt) && (text.charAt(si) == text.charAt(si + k))) {
+										continue;
+									} else {
+										break;
+									}
+								}
+								if (si > 0) {
+									zk = si
+									r = zk + k - 1
+									l = k
+								}
+							} else {
+								var kOld = k - l
+								var zOld = z[kOld]
+								var b = r - k + 1
+								if (zOld < b) {
+									zk = zOld
+								} else {
+									zk = b
+									for (si = b; si < nt; si++) {
+										cmp++;
+										if ((k + si < nt) && (text.charAt(si) == text.charAt(k + si))) {
+											continue;
+										} else {
+											break;
+										}
+									}
+									zk = si;
+									r = zk + k - 1;
+									l = k;
+								}
+							}
+							z[k] = zk;
+						}
+						return cmp;
+					}
+
+					function sprn(text, d) {
+						ctn(text, ce('p', d));
+					}
+
+					function animate(text, pattern) {
+						var div = ce('div');
+						div.style.backgroundColor = '#DDDDCC';
+						div.style.padding = 14;
+
+						var match = false;
+						var matches = 0;
+						var nt = text.length;
+						var np = pattern.length;
+						var table = new Array(); table[0] = new Array(); table[1] = new Array(); table[2] = new Array();
+						var tcolors = new Array(); pcolors = new Array();
+						table[0].push('Index:');
+						table[1].push('Text:');
+						table[2].push('Pattern:');
+						var i = k = 0;
+						for (i = 0; i < nt; i++) {
+							tcolors[i] = '';
+						}
+						for (i = 0; i < np; i++) {
+							pcolors[i] = '';
+						}
+
+						bld_table(text, nt, tcolors, table[1]);
+						for (i = 0; i < nt; i++) {
+							table[0].push({ text: i, align: 'center' });
+						}
+						bld_table(pattern, nt, pcolors, table[2]);
+						buildTable(table, div);
+						ctn('Press x to search for pattern in text using Z algorithm.', ce('p', div));
+						snapshots.push(div.cloneNode(true));
+						sprn('Concatenate the pattern and the text with a marker character between and compute Z for the new string.', div);
+						ztext = pattern + '$' + text;
+						var z = new Array();
+						cmp = compute_z(ztext, z);
+						nz = ztext.length;
+						table[0] = new Array(); table[1] = new Array(); table[2] = new Array();
+						table[0].push('Index:');
+						table[1].push('Z Text:');
+						table[2].push('Z Values:');
+						table[2].push('');
+						for (i = 0; i < nz; i++) {
+							table[0].push({ text: i, width: 25, align: 'center' });
+						}
+						for (i = 0; i < nz; i++) {
+							table[1].push({ text: ztext.charAt(i), width: 25, align: 'center' });
+						}
+						for (i = 1; i < nz; i++) {
+							table[2].push({ text: z[i], width: 25, align: 'center' });
+						}
+						buildTable(table, div);
+						sprn(cmp + ' comparisons used to construct Z values.', div);
+						snapshots.push(div.cloneNode(true));
+						sprn('Now the pattern can be matched by looping through the Z array after element ' + np + ' and selecting Z = ' + np + '.', div);
+						matches = 0;
+						for (i = np + 1; i < nz; i++) {
+							cmp++;
+							if (z[i] == np) {
+								tcolors[i] = 'green';
+								matches++;
+							} else {
+								tcolors[i] = 'red';
+							}
+						}
+
+						ctn('Z algorithm pattern match has completed with ' + matches + ' match(es) and ' + cmp + ' comparisons.', ce('p', div));
+
+						for (k = 0; k < nz; k++) {
+							table[0][k + 1] = { align: 'center', width: 25, text: k, bgColor: tcolors[k] }
+						}
+
+						buildTable(table, div);
+						snapshots.push(div.cloneNode(true));
+					}
+
+					function setViewer(i) {
+						var viewer = ge('viewer');
+						removeAllChildren(viewer);
+
+						ctn('Step #' + i + ", next press 'x', previous press 'z'", ce('h2', viewer));
+						viewer.appendChild(snapshots[i]);
+					}
+
+					function generate(text, pattern) {
+						ge('inputText').value = text;
+						ge('inputPattern').value = pattern;
+						snapshots = new Array();
+						animate(text, pattern);
+						setViewer(sindex = 0);
+					}
+
+					var sindex = 0;
+					var snapshots = new Array();
+					var ord = new Array(), chr = new Array();
+					for (var i = 0; i < 256; i++) {
+						ord[String.fromCharCode(i)] = i;
+						chr[i] = String.fromCharCode(i);
+					}
+
+					function prevSnap() {
+						if (sindex > 0) setViewer(--sindex);
+					}
+
+					function nextSnap() {
+						if (sindex + 1 < snapshots.length) setViewer(++sindex);
+					}
+
+					onkeypressListeners.push(function (e) {
+						var keycode = e ? e.which : event.keyCode;
+						switch (keycode) {
+							case ord['x']: nextSnap(); break;
+							case ord['z']: prevSnap(); break;
+						}
+					});
+
+				</script>
+				<h1>Z Algorithm Exact Pattern Match</h1>
+
+				<p>Input your own the text and pattern below and click match to animate the Z Algorithm Exact Pattern
+					Match algorithm.</p>
+				<p>See the Z Algorithm animation</> for details on computing Z values.</p>
+				<table>
+					<tr>
+						<td>Text:</td>
+						<td><input type="text" id="inputText" size="50" value="xabcabzabc"></td>
+					</tr>
+					<tr>
+						<td>Pattern:</td>
+						<td><input type="text" id="inputPattern" size="50" value="abc"></td>
+					</tr>
+				</table>
+				<input type="button" onclick="generate(ge('inputText').value,ge('inputPattern').value)" value="Match">
+
+				<div id="viewer"></div>
+
+				<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+			</td>
+		</tr>
+	</table>
+	<hr>
+</body>
+
+</html>
